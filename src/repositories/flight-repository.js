@@ -43,14 +43,6 @@ class FlightRepository extends CrudRepository{
             throw new AppError("Some issue occured while getting all flights in sql", StatusCodes.INTERNAL_SERVER_ERROR);
         }
     }
-
-    // async getAllFlights(filter, sort) {
-    //     const response = await Flight.findAll({
-    //         where: filter,
-    //         order: sort
-    //     });
-    //     return response;
-    // }
 }
 
 module.exports = FlightRepository;
