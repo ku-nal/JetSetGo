@@ -22,7 +22,7 @@ async function getAllFlights(query){
     try{
         const endingTripTime = " 23:59:00";
         let customFilter = {};
-        let sortFilter = {}; 
+        let sortFilter = []; 
         if(query.trips){
             [departureAirportId, arrivalAirportId] = query.trips.split('-');
             customFilter.departureAirportId = departureAirportId;
@@ -63,7 +63,43 @@ async function getAllFlights(query){
     }
 }
 
+async function getFlight(id){
+    try{
+        const flight = await flightRepository.findByPk(id);
+        return flight;
+    }
+    catch(error){
+        if(error instanceof AppError){
+            throw new AppError("There is no flight with flight ID: "+ id, StatusCodes.NOT_FOUND);
+        }
+        throw new AppError("Error occured while fetching the flight", StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+}
+
+async function updateSeats(data){
+    try{
+        console.log(data);
+        const response = await flightRepository.findByPk(data.flightId);
+        console.log(response);
+        if(!data.dec || response.totalSeats >= data.seats){
+            console.log("In changing seats");
+            return flightRepository.updateRemainingSeats(data.flightId, data.seats, data.dec);
+        }
+        else{
+            throw new AppError("Not enough seats in this flight",StatusCodes.BAD_REQUEST);
+        }
+    }
+    catch(error){
+        if(error instanceof AppError){
+            return error;
+        }
+        return new AppError("Error occured while updating seats", StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+}
+
 module.exports = {
     createFlight,
-    getAllFlights
+    getAllFlights,
+    getFlight,
+    updateSeats
 }

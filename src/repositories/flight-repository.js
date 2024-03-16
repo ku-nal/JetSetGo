@@ -3,6 +3,7 @@ const {Flight, Airplane, Airport, City} = require('../models');
 const AppError = require('../utils/errors/app-error');
 const { StatusCodes } = require('http-status-codes');
 const {Sequelize} = require('sequelize');
+const db = require('../models');
 
 
 class FlightRepository extends CrudRepository{
@@ -43,13 +44,27 @@ class FlightRepository extends CrudRepository{
                     }
                 ]
             });
-            // console.log("ajkd",response);
             return response;
         }
         catch(error){
             console.log(error);
             throw new AppError("Some issue occured while getting all flights in sql", StatusCodes.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    async updateRemainingSeats(flightId, seats , dec = true){
+        await db.sequelize.query(`select * from Flights where Flights.id = ${flightId} FOR UPDATE;`);
+        const flight = await Flight.findByPk(flightId);
+
+        console.log("type of", typeof dec);
+        if(!dec){
+            await flight.increment('totalSeats',{by: seats});
+        }
+        else{
+            await flight.decrement('totalSeats',{by: seats});
+        }
+        flight.save();
+        return flight;
     }
 }
 
